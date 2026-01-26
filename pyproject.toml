@@ -7,7 +7,10 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "pandas (>=3.0.0,<4.0.0)"
+    "pandas (>=3.0.0,<4.0.0)",
+    "yfinance (>=1.0,<2.0)",
+    "eurostat (>=1.1.1,<2.0.0)",
+    "python-dotenv (>=1.2.1,<2.0.0)"
 ]
 
 
