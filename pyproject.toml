@@ -10,7 +10,9 @@ dependencies = [
     "pandas (>=3.0.0,<4.0.0)",
     "yfinance (>=1.0,<2.0)",
     "eurostat (>=1.1.1,<2.0.0)",
-    "python-dotenv (>=1.2.1,<2.0.0)"
+    "python-dotenv (>=1.2.1,<2.0.0)",
+    "pandas-datareader (>=0.10.0,<0.11.0)",
+    "matplotlib (>=3.10.8,<4.0.0)"
 ]
 
 
