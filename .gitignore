@@ -217,3 +217,10 @@ __marimo__/
 
 # Datafiles
 *.csv
+
+# LaTeX build artifacts
+thesis/src/build/
+thesis/*.synctex.gz
+
+# AI Agents
+.claude/
