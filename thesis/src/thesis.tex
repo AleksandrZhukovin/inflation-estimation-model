@@ -1,0 +1,97 @@
+% ********** Приклад оформлення пояснювальної записки **********
+% *********  до атестаційної роботи ступеня бакалавра **********
+
+
+\documentclass{bachelor_thesis}
+
+% Додаткові пакети вносіть у цей файл
+\input{preamble/01_packages}
+\addbibresource{thesis.bib}
+
+% Додаткові визначення та перевизначення команд вносіть у цей файл
+\input{preamble/02_redefinitions}
+
+% Бюрократичні відомості про автора роботи
+\input{preamble/03_data}
+
+
+% Починаємо верстку документа
+\begin{document}
+
+\pagestyle{plain}
+\setfontsize{14}
+
+% Створюємо титульну сторінку
+\input{frontmatter/a00_title}
+
+% Створюємо завдання
+\input{frontmatter/a01_specification}
+
+% Створюємо анотації
+%\setcounter{page}{4}
+\input{chapters/a1_abstract}
+
+% Створюємо зміст
+%\pagenumbering{gobble}
+\tableofcontents
+\cleardoublepage
+%\pagenumbering{arabic}
+%\setcounter{page}{8}    %!!! -- продумати, як автоматизувати номер сторінки
+
+% Створюємо перелік умовних позначень, скорочень і термінів
+% Якщо цей розділ вам не потрібен, просто закоментуйте два наступних рядка
+\shortings
+\input{chapters/a2_shortings}
+
+% Створюємо вступ
+\intro
+\input{chapters/a3_introduction}
+
+% Додаємо глави
+% Якщо ваша робота містить менше або більше глав - модифікуйте наступні
+% рядки відповідним чином
+\input{chapters/c1_chapter_01}
+\input{chapters/c2_chapter_02}
+\input{chapters/c3_chapter_03}
+
+
+% Створюємо висновки
+\conclusions
+\input{chapters/w1_conclusions}
+
+% Додаємо бібліографію
+%%%%%%% Якщо ви не використовуєте bibtex, оце все треба закоментувати звідси...
+\defbibenvironment{bibliography}
+  {\list
+     {\printfield[labelnumberwidth]{labelnumber}}
+     {\setfontsize{14}%
+     }}
+  {\endlist}
+  {\item}
+
+\printbibliography[heading=bibintoc,title={Перелік посилань}]
+%%%%%%% ...по осюди
+
+% Якщо у вас виникли проблеми з бібтехом (у мене, наприклад, виникли), то замість бібтеху
+% можна використати менш приємний, але завжди працюючий спосіб: вписати та оформити бібліографію вручну
+% Для цього закоментуйте команду \printbibliography та розкоментуйте наступний рядок
+% VVV оцей рядок розкоментуйте VVV
+%\input{chapters/w2_bibliography}
+% ^^^ оцей-оцей ^^^
+% Бібліографія вноситься у файл "w2_bibliography.tex"
+
+%%% А це взагалі перестало працювати :(
+%\bibliographystyle{ugost2008}
+%\bibliography{thesis}
+
+
+% Створюємо додатки (дивись у файли додатків для необхідних пояснень)
+% Якщо ви маєте меншу або більшу кількість додатків, модифікуйте наступні
+% рядки відповідним чином
+% Якщо ви не маєте додатків, просто закоментуйте наступні рядки
+\input{chapters/z1_appendix_A}
+\input{chapters/z2_appendix_B}
+
+
+% Нарешті
+\end{document}

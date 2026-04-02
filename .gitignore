@@ -224,3 +224,6 @@ thesis/*.synctex.gz
 
 # AI Agents
 .claude/
+
+# Thesis
+*.pdf
