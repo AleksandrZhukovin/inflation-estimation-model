@@ -227,3 +227,4 @@ thesis/*.synctex.gz
 
 # Thesis
 *.pdf
+thesis/examples/
