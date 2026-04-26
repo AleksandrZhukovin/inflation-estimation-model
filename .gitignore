@@ -228,3 +228,4 @@ thesis/*.synctex.gz
 # Thesis
 *.pdf
 thesis/examples/
+thesis/parts/
