@@ -2,6 +2,7 @@ import random
 import time
 
 import matplotlib
+
 matplotlib.use("Agg")
 
 import numpy as np
@@ -19,16 +20,16 @@ from src.multi_horizon import run as run_multi_horizon
 from src.shap_analysis import run as run_shap
 
 PHASES = [
-    ("EDA",                   run_eda),
-    ("ARIMA fitting",         run_arima),
-    ("Feature engineering",   run_features),
+    ("EDA", run_eda),
+    ("ARIMA fitting", run_arima),
+    ("Feature engineering", run_features),
     ("Hyperparameter tuning", run_tuning),
-    ("XGBoost training",      run_xgboost),
-    ("Hybrid prediction",     run_hybrid),
-    ("Benchmarks",            run_benchmarks),
-    ("Evaluation",            run_evaluation),
-    ("Multi-horizon",         run_multi_horizon),
-    ("SHAP analysis",         run_shap),
+    ("XGBoost training", run_xgboost),
+    ("Hybrid prediction", run_hybrid),
+    ("Benchmarks", run_benchmarks),
+    ("Evaluation", run_evaluation),
+    ("Multi-horizon", run_multi_horizon),
+    ("SHAP analysis", run_shap),
 ]
 
 
