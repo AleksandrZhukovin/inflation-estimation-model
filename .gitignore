@@ -229,3 +229,7 @@ thesis/*.synctex.gz
 *.pdf
 thesis/examples/
 thesis/parts/
+
+# Project specific
+data/
+outputs/reports/
