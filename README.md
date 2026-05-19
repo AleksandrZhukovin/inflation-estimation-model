@@ -1,47 +1,72 @@
 # Inflation Estimation Model
 
-## Дані
+## Dataset
+Link: https://docs.google.com/spreadsheets/d/16a271hZg2W89L9PSKg2VTPfsj9-z33OvdYHuWeG9HbE/edit?usp=sharing
 
-Ознаки (всі прирости за період в 1 місяць):
-- Курс офіційної валюти до долара (приріст у %)
-- Курс офіційної валюти до євро (приріст у %)
-- Базова ставка
-- Дефіцит бюджету (у %)
-- ВВП (приріст у %)
-- Державний борг (приріст у %)
-- К-сть грошей в економіці (приріст у %)
-- Торгівельний баланс
-- Рівень безробіття
-- Ціна на нафту
-- Ціна на золото
-- GPR індекс
-- VIX індекс
+## Project structure
 
-Передбачення:
-- Індекс інфляції (CPI)
+```
+.
+├── main.py                  # Pipeline entry point
+├── config.yaml              # All configuration
+├── pyproject.toml           # Dependencies
+│
+├── src/
+│   ├── config.py            # Config loader (YAML → SimpleNamespace)
+│   ├── data.py              # Dataset loading, validation, train/test split
+│   ├── eda.py               # Exploratory analysis (ADF, STL, plots)
+│   ├── arima.py             # Auto-ARIMA fitting per country
+│   ├── features.py          # Feature matrix + ARIMA residuals
+│   ├── tuning.py            # Hyperparameter search (Optuna TPE, 150 trials)
+│   ├── xgboost_model.py     # XGBoost training with early stopping
+│   ├── hybrid.py            # Hybrid forecast = ARIMA + XGBoost residual
+│   ├── benchmarks.py        # Pure-ARIMA and pure-XGBoost baselines
+│   ├── evaluation.py        # RMSE comparison + Diebold-Mariano test
+│   ├── multi_horizon.py     # RMSE at horizons h = 1, 3, 6, 12
+│   └── shap_analysis.py     # SHAP feature importance
+│
+├── data/
+│   └── diploma_dataset_1.csv  # Panel dataset (UA/LT/LV, monthly)
+│
+└── outputs/
+    ├── models/              # Serialized models (.pkl) and best_params.json
+    ├── predictions/         # CSV forecasts and SHAP values
+    ├── tables/              # Per-phase result tables (CSV)
+    ├── figures/             # Plots (PNG)
+    └── reports/             # FINAL_REPORT.md
+```
 
-В пакеті **src/inflation_estimation/data** знаходиться скрипт збору даних.
-Головний файл **src/inflation_estimation/data/dataset.py** містить основний код.
+## Setup
 
-> Оскільки дані суто української економіки складно знайти, та враховуючи факт відносно
-> невеликого часу її розвитку, а отже і невеликої кількості самих записів, беруться дані
-> відносно схожих економік пострадянських країн (Латвії та Литви) що дозволяє збільшити
-> к-сть записів в три рази.
+```bash
+# Create and activate virtual environment
+python -m venv .venv
+.venv\Scripts\activate        # Windows
+# source .venv/bin/activate   # Linux / macOS
 
-Основні частини збору даних:
-- Збір даних України складається з курсів гривні до євро та долара з Yahoo Finance. Всі
-інші дані потрібно заповнювати вручну.
-- Збір даних для Латвії та Литви відбувається з Eurostat. Наявні також колонки для заповнення вручну.
-- Окрема частина - глобальні показники (ціна на нафту, золото, біржові індекси тощо).
+# Install dependencies
+pip install -e .
 
-Наразі датасет можна знайти [тут](https://docs.google.com/spreadsheets/d/1AsB-mqAMJSPZt6sKEzpyix6LK8_ZPjcI6fSkxwb3tso/edit?usp=sharing). Думаю ще можна взяти дані з Естонії, можливо ще якісь країни.
-Далі поступову заповнювати ті дані збір яких не вдалось автоматизувати.
+# Install dev tools (ruff, pytest)
+pip install -e ".[dev]"
+```
 
-## Модель
-Для створення моделі планую використати наступні архітектури:
-- ARIMA - для лінійної складової
-- XGBoost - для нелінійної складової
-- SHAP - щоб додати інтерпретацію результату та пояснити які саме показники найбільше вплинули на передбачення.
+## Run
 
-В папці **documents** є файли з системного аналізу, в **documents/СистемнийАналіз_Курсова.pdf** можна знайти "тестові" перші
-два розділи диплому з детальним описом моделі. Також деякі джерела.
+```bash
+python main.py
+```
+
+## Configuration
+
+Key fields in `config.yaml`:
+
+| Field | Default | Description |
+|---|---|---|
+| `data.dataset_path` | `data/diploma_dataset_1.csv` | Input dataset |
+| `data.train_end` | `2019-12-31` | End of pre-test training window |
+| `data.test_start` / `test_end` | `2020-01-01` / `2021-12-31` | Test window |
+| `data.ua_post_test_start` | `2022-01-01` | Start of post-test UA training data |
+| `xgboost.n_estimators` | `2000` | Tree budget for final training |
+| `xgboost.cv_n_splits` | `5` | Folds for TimeSeriesSplit CV |
+| `project.random_seed` | `42` | Global RNG seed |
