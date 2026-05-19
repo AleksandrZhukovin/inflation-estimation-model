@@ -1,0 +1,62 @@
+project:
+  random_seed: 42
+  base_dir: "."
+
+data:
+  dataset_path: "data/diploma_dataset_1.csv"
+  date_column: "Date"
+  target_column: "CPI_Index"
+  country_column: "Country"
+  countries:
+    - "UA"
+    - "LT"
+    - "LV"
+  flag_columns: []
+  train_end: "2019-12-31"
+  test_start: "2020-01-01"
+  test_end: "2021-12-31"
+  test_countries:
+    - "UA"
+  ua_train_start: "2007-01-01"
+  lt_lv_train_start: "2004-01-01"
+  ua_post_test_start: "2022-01-01"
+
+arima:
+  max_p: 5
+  max_q: 5
+  seasonal: false
+  information_criterion: "aic"
+  stepwise: true
+  ljung_box_lags: 10
+
+xgb_grid:
+  eta: [0.05, 0.1, 0.15]
+  max_depth: [4, 5, 6, 8]
+  min_child_weight: [1, 5]
+  gamma: [0]
+  reg_alpha: [0, 0.1]
+  reg_lambda: [0.5, 1.0, 2.0]
+  subsample: [0.8, 1.0]
+  colsample_bytree: [0.8, 1.0]
+
+xgboost:
+  n_estimators: 2000
+  early_stopping_rounds: 100
+  n_estimators_fixed: 1000       # fallback tree count when ES is degenerate
+  eval_split_ratio: 0.1
+  cv_n_splits: 5
+  cv_n_estimators: 500            # trees per fold during grid search
+  cv_early_stopping_rounds: 100   # early stopping rounds inside CV folds
+
+horizons: [1, 3, 6, 12]
+
+outputs:
+  models_dir: "outputs/models"
+  predictions_dir: "outputs/predictions"
+  tables_dir: "outputs/tables"
+  figures_dir: "outputs/figures"
+
+figures:
+  dpi: 300
+  format: "png"
+  style: "seaborn-v0_8-whitegrid"

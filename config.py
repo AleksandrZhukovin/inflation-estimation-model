@@ -7,4 +7,4 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
-DATASET_PATH = DATA_DIR / "dataset.csv"
+DATASET_PATH = DATA_DIR / "diploma_dataset_1.csv"
