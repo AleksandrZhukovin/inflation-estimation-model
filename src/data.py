@@ -50,22 +50,8 @@ def validate_schema(df):
             )
 
 
-def split_train_test(
-    df, train_end, test_start, test_countries=None, test_end=None, post_test_start=None
-):
-    pre_test = df[df["Date"] <= pd.Timestamp(train_end)]
-    if post_test_start and test_countries:
-        post_test = df[
-            df["Country"].isin(test_countries)
-            & (df["Date"] >= pd.Timestamp(post_test_start))
-        ]
-        train_df = (
-            pd.concat([pre_test, post_test])
-            .sort_values(["Country", "Date"])
-            .reset_index(drop=True)
-        )
-    else:
-        train_df = pre_test.reset_index(drop=True)
+def split_train_test(df, train_end, test_start, test_countries=None, test_end=None):
+    train_df = df[df["Date"] <= pd.Timestamp(train_end)].reset_index(drop=True)
 
     test_df = df[df["Date"] >= pd.Timestamp(test_start)]
     if test_end:

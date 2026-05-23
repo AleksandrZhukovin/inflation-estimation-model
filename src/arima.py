@@ -59,7 +59,7 @@ def fit_arima_for_country(country, train_df, cfg):
         start_q=0,
         max_p=cfg.arima.max_p,
         max_q=cfg.arima.max_q,
-        d=None,
+        d=getattr(cfg.arima, "d", None),
         seasonal=cfg.arima.seasonal,
         information_criterion=cfg.arima.information_criterion,
         stepwise=cfg.arima.stepwise,
@@ -114,9 +114,6 @@ def save_arima_model(result, path):
 def load_arima_model(path):
     path = Path(path)
     return joblib.load(path)
-
-
-# run
 
 
 def run(cfg):

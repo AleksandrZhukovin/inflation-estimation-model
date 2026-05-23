@@ -147,9 +147,6 @@ def tune_xgboost_optuna(X, y, cfg, n_trials=150):
     return best_params, results_df
 
 
-# run
-
-
 def run(cfg):
     from src.arima import load_arima_model
     from src.data import load_dataset, split_train_test, validate_schema
@@ -163,28 +160,17 @@ def run(cfg):
 
     df = load_dataset(cfg.data.dataset_path)
     validate_schema(df)
-    train_df, test_df = split_train_test(
+    train_df, _ = split_train_test(
         df,
         cfg.data.train_end,
         cfg.data.test_start,
-        test_countries=cfg.data.test_countries,
-        test_end=cfg.data.test_end,
-        post_test_start=getattr(cfg.data, "ua_post_test_start", None),
     )
 
     arima_results = {
         country: load_arima_model(models_dir / f"arima_{country.lower()}.pkl")
         for country in cfg.data.countries
     }
-    post_test_start = getattr(cfg.data, "ua_post_test_start", None)
-    post_test_df = (
-        train_df[train_df["Date"] >= pd.Timestamp(post_test_start)]
-        if post_test_start
-        else None
-    )
-    residuals_df = compute_arima_residuals(
-        arima_results, post_test_df=post_test_df, cfg=cfg
-    )
+    residuals_df = compute_arima_residuals(arima_results)
     X, y, feature_names = build_feature_matrix(train_df, residuals_df, cfg)
 
     best_params, results_df = tune_xgboost_optuna(X, y, cfg, n_trials=N_TRIALS)

@@ -173,7 +173,6 @@ def run(cfg):
         cfg.data.test_start,
         test_countries=cfg.data.test_countries,
         test_end=cfg.data.test_end,
-        post_test_start=getattr(cfg.data, "ua_post_test_start", None),
     )
 
     arima_results = {
