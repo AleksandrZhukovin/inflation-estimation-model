@@ -12,16 +12,16 @@ data:
     - "LT"
     - "LV"
   flag_columns: []
-  train_end: "2019-12-31"
-  test_start: "2020-01-01"
-  test_end: "2021-12-31"
+  train_end: "2023-12-31"
+  test_start: "2024-01-01"
+  test_end: null
   test_countries:
     - "UA"
   ua_train_start: "2007-01-01"
-  lt_lv_train_start: "2004-01-01"
-  ua_post_test_start: "2022-01-01"
+  lt_lv_train_start: "2007-01-01"
 
 arima:
+  d: 1
   max_p: 5
   max_q: 5
   seasonal: false
@@ -49,6 +49,10 @@ xgboost:
   cv_early_stopping_rounds: 100   # early stopping rounds inside CV folds
 
 horizons: [1, 3, 6, 12]
+
+walk_forward:
+  initial_train_years: 10
+  test_window_years: 1
 
 outputs:
   models_dir: "outputs/models"
