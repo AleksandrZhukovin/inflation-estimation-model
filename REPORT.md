@@ -1,30 +1,14 @@
 # Звіт
 
-**Основні результати:**
+## Основні результати
 
-| Модель | RMSE (UA, 2020–2021) |
-|:---|---:|
-| Чистий ARIMA | 5.7633 |
-| Гібрид ARIMA+XGBoost | 5.4136 |
-| Чистий XGBoost | 3.8887 |
+| Модель | Mean RMSE |
+|:---|---:|---:|
+| Чистий ARIMA | 4.6395 |
+| **ARIMA+XGBoost** | **4.4385** |
+| Чистий XGBoost | 4.2281 |
 
-Гібридна модель перевершує ARIMA на 6.1%. Чистий XGBoost показує найкращий результат на 24-місячному горизонті.
-
----
-
-## Дані
-
-**Файл:** `data/diploma_dataset_1.csv`
-**Частота:** місячна
-**Цільова змінна:** `CPI_Index` (рік-до-року, %)
-
-### Часовий діапазон
-
-| Країна | Початок | Кінець | Записів |
-|:---|:---|:---|---:|
-| UA | 2007-01-31 | 2025-12-31 | ~228 |
-| LT | 2004-01-31 | 2025-12-31 | 264 |
-| LV | 2004-01-31 | 2025-12-31 | 264 |
+Гібридна модель перевершує ARIMA на **4.3%** у середньому за 9 тестів. Гібрид кращий за ARIMA у 7 з 9 тестів.
 
 ### Предиктори
 
@@ -47,74 +31,75 @@
 
 ---
 
-## Гіперпараметрів
+## Гіперпараметри
 
-**Метод:** Optuna TPE, 150 випробувань
-**Найкращий CV RMSE:** 2.9176
-
-### Найкращі гіперпараметри
+**Метод:** Optuna TPE, 150 випробувань, 5-fold TimeSeriesSplit
 
 | Параметр | Значення |
 |:---|---:|
-| `eta` | 0.0473 |
-| `max_depth` | 7 |
-| `min_child_weight` | 10 |
-| `gamma` | 0.0421 |
-| `reg_alpha` | 0.3010 |
-| `reg_lambda` | 1.4333 |
-| `subsample` | 0.7584 |
-| `colsample_bytree` | 0.8127 |
+| `eta` | 0.0123 |
+| `max_depth` | 3 |
+| `min_child_weight` | 8 |
+| `gamma` | 0.4244 |
+| `reg_alpha` | 0.9641 |
+| `reg_lambda` | 1.7999 |
+| `subsample` | 0.9422 |
+| `colsample_bytree` | 0.9016 |
 
 ---
 
-## Порівняння моделей
+## Результати по тестах
+
+| Вікно | Тренування | Тест | ARIMA | Гібрид | XGB_pure |
+|---:|:---|:---:|---:|---:|---:|
+| 1 | 2007–2016 | 2017 | 3.1180 | **2.2563** | 1.5257 |
+| 2 | 2007–2017 | 2018 | 1.9888 | **1.5774** | 3.8231 |
+| 3 | 2007–2018 | 2019 | 2.2937 | 2.4574 | 3.6449 |
+| 4 | 2007–2019 | 2020 | **0.6640** | 0.6829 | 5.0777 |
+| 5 | 2007–2020 | 2021 | 4.1798 | **4.1577** | 1.7946 |
+| 6 | 2007–2021 | 2022 | 11.1980 | **10.7014** | 9.2948 |
+| 7 | 2007–2022 | 2023 | 13.5600 | **13.5190** | 4.8392 |
+| 8 | 2007–2023 | 2024 | 2.8419 | **2.6774** | 2.4649 |
+| 9 | 2007–2024 | 2025 | **1.9111** | 1.9169 | 5.5883 |
+| **Середнє** | | | 4.6395 | **4.4385** | 4.2281 |
+
+---
 
 ## Горизонтний аналіз
 
 | Горизонт (місяців) | Гібрид | Чистий ARIMA | Чистий XGBoost |
 |---:|---:|---:|---:|
-| 1 | **0.1039** | 0.1053 | 3.7666 |
-| 3 | 0.4230 | **0.2928** | 4.8146 |
-| 6 | 0.3913 | **0.3024** | 5.3962 |
-| 12 | **0.8486** | 0.8516 | 5.1634 |
-
-На короткому горизонті (h=1) гібридна модель незначно перевершує ARIMA. На середніх горизонтах (h=3, 6) ARIMA точніша — XGBoost-корекція залишків дещо погіршує прогноз. На горизонті h=12 гібрид і ARIMA практично рівнозначні.
+| 1 | 0.1978 | **0.1729** | 4.4263 |
+| 3 | **0.1532** | 0.1570 | 5.0194 |
+| 6 | **1.1385** | 1.1547 | 6.2963 |
+| 12 | 1.9169 | **1.9111** | 5.5883 |
 
 ---
 
-# Топ-10 ознак за середнім SHAP
+## Топ-5 ознак за середнім |SHAP|
 
-| Ознака | Mean SHAP | Інтерпретація |
+| Ознака | Mean\|SHAP\|
 |:---|---:|:---|
-| `Year_trend` | 0.4997 | Довгостроковий лінійний тренд — домінуюча ознака |
-| `FAO_FFPI` | 0.1110 | Глобальні продовольчі ціни |
-| `Industrial_Production_yoy` | 0.1068 | Внутрішній виробничий цикл |
-| `Brent_Oil` | 0.1035 | Ціна на енергоносії |
-| `REER` | 0.1030 | Реальний обмінний курс |
-| `Official_Currency_to_USD` | 0.1007 | Номінальний обмінний курс USD |
-| `Official_Currency_to_EUR` | 0.0970 | Номінальний обмінний курс EUR |
-| `GDP_yoy` | 0.0875 | Темп економічного зростання |
-| `Key_Rate` | 0.0817 | Монетарна політика |
-| `VIX_Index` | 0.0816 | Глобальна ринкова невизначеність |
-| `Global_GPR_Index` | 0.0752 | Геополітичний ризик |
+| `Money_Supply_yoy` | 0.0113 |
+| `Key_Rate` | 0.0080 |
+| `REER` | 0.0075 |
+| `Gold_Price` | 0.0062 |
+| `GDP_yoy` | 0.0026 |
 
 ---
 
 ## Додаткова інформація
 
 **Файли моделей:**
-- `outputs/models/arima_ua.pkl` — ARIMA UA
-- `outputs/models/arima_lt.pkl` — ARIMA LT
-- `outputs/models/arima_lv.pkl` — ARIMA LV
-- `outputs/models/xgboost_final.pkl` — фінальна гібридна XGBoost-модель
-- `outputs/models/xgboost_pure.pkl` — бенчмарк XGBoost (прямий)
-- `outputs/models/best_params.json` — найкращі гіперпараметри
+- `outputs/models/arima_ua.pkl` — ARIMA UA (останнє вікно)
+- `outputs/models/arima_lt.pkl` — ARIMA LT (останнє вікно)
+- `outputs/models/arima_lv.pkl` — ARIMA LV (останнє вікно)
+- `outputs/models/xgboost_final.pkl` — гібридна XGBoost-модель (останнє вікно)
+- `outputs/models/xgboost_pure.pkl` — бенчмарк XGBoost (останнє вікно)
+- `outputs/models/best_params.json` — найкращі гіперпараметри (останнє вікно)
 
 **Ключові таблиці результатів:**
-- `outputs/tables/arima/arima_specifications.csv`
-- `outputs/tables/evaluation/model_comparison.csv`
-- `outputs/tables/evaluation/dm_test_pvalues.csv`
-- `outputs/tables/horizon/horizon_metrics.csv`
-- `outputs/tables/shap/global_feature_ranking.csv`
-- `outputs/tables/tuning/hyperparameter_search_top10.csv`
-- `outputs/tables/xgboost/training_summary.csv`
+- `outputs/tables/walk_forward/per_window_metrics.csv` — RMSE по вікнах
+- `outputs/tables/walk_forward/summary_metrics.csv` — середнє/стд по моделях
+- `outputs/tables/horizon/horizon_metrics.csv` — горизонтний аналіз
+- `outputs/tables/shap/global_feature_ranking.csv` — рейтинг ознак SHAP
