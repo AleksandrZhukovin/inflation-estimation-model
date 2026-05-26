@@ -30,11 +30,14 @@ def _wf_generate_windows(cfg, df):
     return windows
 
 
+
 def _wf_run_window(train_end_year, test_year, df, cfg):
     from src.arima import fit_arima_for_country
     from src.benchmarks import (
         arima_forecast,
         build_benchmark_df,
+        random_walk_forecast,
+        seasonal_naive_forecast,
         train_xgb_pure,
         xgb_pure_forecast,
     )
@@ -64,11 +67,15 @@ def _wf_run_window(train_end_year, test_year, df, cfg):
     params, _ = tune_xgboost_optuna(X_train, y_train, cfg, n_trials=N_TRIALS)
     model = train_xgboost(X_train, y_train, params, cfg)
 
-    hybrid_df = predict_hybrid(test_df, arima_results, model, feature_names, cfg)
+    hybrid_df = predict_hybrid(
+        test_df, arima_results, model, feature_names, cfg, train_df=train_df
+    )
     arima_fc = arima_forecast(arima_results, test_df, cfg)
     xgb_model_p, feat_p = train_xgb_pure(train_df, params, cfg)
-    xgb_fc = xgb_pure_forecast(xgb_model_p, feat_p, test_df, cfg)
-    bench_df = build_benchmark_df(test_df, arima_fc, xgb_fc, cfg)
+    xgb_fc = xgb_pure_forecast(xgb_model_p, feat_p, test_df, cfg, train_df=train_df)
+    rw_fc = random_walk_forecast(train_df, test_df, cfg)
+    sn_fc = seasonal_naive_forecast(train_df, test_df, cfg)
+    bench_df = build_benchmark_df(test_df, arima_fc, xgb_fc, rw_fc, sn_fc, cfg)
 
     country = cfg.data.test_countries[0]
     actual = test_df[test_df[cfg.data.country_column] == country][
@@ -83,6 +90,8 @@ def _wf_run_window(train_end_year, test_year, df, cfg):
         "rmse_arima": round(rmse(actual, arima_fc[country]), 4),
         "rmse_hybrid": round(rmse(actual, hybrid_pred), 4),
         "rmse_xgb_pure": round(rmse(actual, xgb_fc[country]), 4),
+        "rmse_rw": round(rmse(actual, rw_fc[country]), 4),
+        "rmse_sn": round(rmse(actual, sn_fc[country]), 4),
     }
     return metrics, arima_results, model, xgb_model_p, params, hybrid_df, bench_df
 
@@ -158,7 +167,7 @@ def run_walk_forward(cfg):
     per_window_df.to_csv(tables_dir / "per_window_metrics.csv", index=False)
 
     summary_rows = []
-    for col in ["rmse_arima", "rmse_hybrid", "rmse_xgb_pure"]:
+    for col in ["rmse_arima", "rmse_hybrid", "rmse_xgb_pure", "rmse_rw", "rmse_sn"]:
         summary_rows.append(
             {
                 "model": col,
@@ -168,7 +177,7 @@ def run_walk_forward(cfg):
         )
     pd.DataFrame(summary_rows).to_csv(tables_dir / "summary_metrics.csv", index=False)
 
-    header = f"{'Win':>4}  {'Train':>10}  {'Test':>4}  {'ARIMA':>8}  {'Hybrid':>8}  {'XGB_pure':>8}"
+    header = f"{'Win':>4}  {'Train':>10}  {'Test':>4}  {'ARIMA':>8}  {'Hybrid':>8}  {'XGB_pure':>8}  {'RW':>8}  {'SN':>8}"
     print(f"\n[Walk-forward CV] {len(records)} windows\n")
     print(header)
     print("─" * len(header))
@@ -176,7 +185,8 @@ def run_walk_forward(cfg):
         print(
             f"{j + 1:>4}  {ua_start}–{int(row.train_end_year):>4}  "
             f"{int(row.test_year):>4}  "
-            f"{row.rmse_arima:>8.4f}  {row.rmse_hybrid:>8.4f}  {row.rmse_xgb_pure:>8.4f}"
+            f"{row.rmse_arima:>8.4f}  {row.rmse_hybrid:>8.4f}  {row.rmse_xgb_pure:>8.4f}  "
+            f"{row.rmse_rw:>8.4f}  {row.rmse_sn:>8.4f}"
         )
     print("─" * len(header))
     for row in summary_rows:

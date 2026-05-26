@@ -11,14 +11,36 @@ import pandas as pd
 COUNTRY_LABELS = {"UA": "Україна", "LT": "Литва", "LV": "Латвія"}
 
 
-def _build_test_features(test_df, cfg, feature_names):
+def _build_test_features(test_df, cfg, feature_names, last_train_df=None):
     drop_always = {
         cfg.data.date_column,
         cfg.data.target_column,
         *cfg.data.flag_columns,
     }
+    macro_cols = [
+        c
+        for c in test_df.columns
+        if c not in drop_always and c != cfg.data.country_column
+    ]
 
     working = test_df.copy()
+
+    if last_train_df is not None:
+        parts = []
+        for country in working[cfg.data.country_column].unique():
+            last_row = (
+                last_train_df[last_train_df[cfg.data.country_column] == country]
+                .sort_values(cfg.data.date_column)
+                .iloc[[-1]]
+            )
+            country_test = working[
+                working[cfg.data.country_column] == country
+            ].sort_values(cfg.data.date_column)
+            combined = pd.concat([last_row, country_test], ignore_index=True)
+            for col in macro_cols:
+                combined[col] = combined[col].shift(1)
+            parts.append(combined.iloc[1:])
+        working = pd.concat(parts, ignore_index=True)
 
     _dates = pd.to_datetime(working[cfg.data.date_column])
     working["Month_sin"] = np.sin(2 * np.pi * _dates.dt.month / 12)
@@ -39,10 +61,12 @@ def _build_test_features(test_df, cfg, feature_names):
     return working[feature_names].reset_index(drop=True)
 
 
-def predict_hybrid(test_df, arima_results, xgb_model, feature_names, cfg):
+def predict_hybrid(
+    test_df, arima_results, xgb_model, feature_names, cfg, train_df=None
+):
     from src.arima import predict_arima
 
-    X_test = _build_test_features(test_df, cfg, feature_names)
+    X_test = _build_test_features(test_df, cfg, feature_names, last_train_df=train_df)
     xgb_preds_all = xgb_model.predict(X_test)
 
     rows = []
@@ -164,7 +188,7 @@ def run(cfg):
     xgb_model = load_xgboost_model(models_dir / "xgboost_final.pkl")
 
     residuals_df = compute_arima_residuals(arima_results)
-    _, _, feature_names = build_feature_matrix(train_df, residuals_df, cfg)
+    _, _, feature_names, _ = build_feature_matrix(train_df, residuals_df, cfg)
 
     predictions_df = predict_hybrid(
         test_df, arima_results, xgb_model, feature_names, cfg

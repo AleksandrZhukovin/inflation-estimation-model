@@ -62,7 +62,7 @@ def run(cfg):
     residuals_df = compute_arima_residuals(arima_results)
     _, _, feature_names = build_feature_matrix(train_df, residuals_df, cfg)
 
-    X_test = _build_test_features(test_df, cfg, feature_names)
+    X_test = _build_test_features(test_df, cfg, feature_names, last_train_df=train_df)
 
     explanation, shap_values = compute_shap_values(xgb_model, X_test)
 

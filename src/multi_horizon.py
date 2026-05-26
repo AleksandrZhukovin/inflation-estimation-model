@@ -12,17 +12,23 @@ MODELS = {
     "Hybrid": "Гібрид ARIMA+XGBoost",
     "ARIMA_only": "Чистий ARIMA",
     "XGB_pure": "Чистий XGBoost",
+    "RW": "Випадкове блукання",
+    "SN": "Сезонний наїв",
 }
 COUNTRY_LABELS = {"UA": "Україна", "LT": "Литва", "LV": "Латвія"}
 MODEL_COLORS = {
     "Гібрид ARIMA+XGBoost": "#d62728",
     "Чистий ARIMA": "#1f77b4",
     "Чистий XGBoost": "#ff7f0e",
+    "Випадкове блукання": "#2ca02c",
+    "Сезонний наїв": "#9467bd",
 }
 MODEL_MARKERS = {
     "Гібрид ARIMA+XGBoost": "o",
     "Чистий ARIMA": "s",
     "Чистий XGBoost": "D",
+    "Випадкове блукання": "^",
+    "Сезонний наїв": "v",
 }
 
 
@@ -35,7 +41,7 @@ def _rmse(actual, pred):
 
 def evaluate_horizons(hybrid_df, benchmark_df, cfg):
     all_cols = hybrid_df[["Country", "Date", "Actual", "Hybrid", "ARIMA_only"]].merge(
-        benchmark_df[["Country", "Date", "XGB_pure"]],
+        benchmark_df[["Country", "Date", "XGB_pure", "RW", "SN"]],
         on=["Country", "Date"],
         how="inner",
     )

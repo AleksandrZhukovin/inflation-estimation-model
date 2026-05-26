@@ -48,6 +48,14 @@ def _build_xgb_pure_train(train_df, cfg):
 
     merged = merged.dropna(subset=[cfg.data.target_column]).reset_index(drop=True)
 
+    macro_cols = [
+        c
+        for c in merged.columns
+        if c not in drop_always and c != cfg.data.country_column
+    ]
+    merged[macro_cols] = merged.groupby(cfg.data.country_column)[macro_cols].shift(1)
+    merged = merged.dropna(subset=macro_cols).reset_index(drop=True)
+
     y = merged[cfg.data.target_column].reset_index(drop=True)
 
     feature_df = merged.drop(
@@ -92,10 +100,10 @@ def train_xgb_pure(train_df, best_params, cfg):
     return model, feature_names
 
 
-def xgb_pure_forecast(model, feature_names, test_df, cfg):
+def xgb_pure_forecast(model, feature_names, test_df, cfg, train_df=None):
     from src.hybrid import _build_test_features
 
-    X_test = _build_test_features(test_df, cfg, feature_names)
+    X_test = _build_test_features(test_df, cfg, feature_names, last_train_df=train_df)
     all_preds = model.predict(X_test)
 
     result = {}
@@ -104,6 +112,30 @@ def xgb_pure_forecast(model, feature_names, test_df, cfg):
         n = int((test_df[cfg.data.country_column] == country).sum())
         result[country] = all_preds[offset : offset + n]
         offset += n
+    return result
+
+
+def random_walk_forecast(train_df, test_df, cfg):
+    result = {}
+    for country in cfg.data.test_countries:
+        country_train = train_df[
+            train_df[cfg.data.country_column] == country
+        ].sort_values(cfg.data.date_column)
+        last_val = float(country_train[cfg.data.target_column].iloc[-1])
+        n_test = int((test_df[cfg.data.country_column] == country).sum())
+        result[country] = np.full(n_test, last_val)
+    return result
+
+
+def seasonal_naive_forecast(train_df, test_df, cfg):
+    result = {}
+    for country in cfg.data.test_countries:
+        country_train = train_df[
+            train_df[cfg.data.country_column] == country
+        ].sort_values(cfg.data.date_column)
+        last_12 = country_train[cfg.data.target_column].values[-12:]
+        n_test = int((test_df[cfg.data.country_column] == country).sum())
+        result[country] = last_12[:n_test]
     return result
 
 
@@ -120,7 +152,7 @@ def load_xgb_pure(path):
 # assemble benchmark DataFrame
 
 
-def build_benchmark_df(test_df, arima_fc, xgb_pure_fc, cfg):
+def build_benchmark_df(test_df, arima_fc, xgb_pure_fc, rw_fc, sn_fc, cfg):
     rows = []
     for country in cfg.data.test_countries:
         country_test = (
@@ -136,6 +168,8 @@ def build_benchmark_df(test_df, arima_fc, xgb_pure_fc, cfg):
                     "Actual": float(row[cfg.data.target_column]),
                     "ARIMA_only": float(arima_fc[country][i]),
                     "XGB_pure": float(xgb_pure_fc[country][i]),
+                    "RW": float(rw_fc[country][i]),
+                    "SN": float(sn_fc[country][i]),
                 }
             )
     return pd.DataFrame(rows).sort_values(["Country", "Date"]).reset_index(drop=True)

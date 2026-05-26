@@ -9,17 +9,21 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-MODELS = ["ARIMA_only", "XGB_pure", "Hybrid"]
+MODELS = ["ARIMA_only", "XGB_pure", "Hybrid", "RW", "SN"]
 MODEL_UA = {
     "ARIMA_only": "Чистий ARIMA",
     "XGB_pure": "Чистий XGBoost",
     "Hybrid": "Гібрид ARIMA+XGBoost",
+    "RW": "Випадкове блукання",
+    "SN": "Сезонний наїв",
 }
 COUNTRY_LABELS = {"UA": "Україна", "LT": "Литва", "LV": "Латвія"}
 MODEL_COLORS = {
     "Чистий ARIMA": "#1f77b4",
     "Чистий XGBoost": "#ff7f0e",
     "Гібрид ARIMA+XGBoost": "#d62728",
+    "Випадкове блукання": "#2ca02c",
+    "Сезонний наїв": "#9467bd",
 }
 
 
@@ -75,7 +79,7 @@ def dm_test(actual, pred1, pred2, h=1):
 
 def evaluate_all_models(hybrid_df, benchmark_df, cfg):
     all_cols = hybrid_df[["Country", "Date", "Actual", "Hybrid"]].merge(
-        benchmark_df[["Country", "Date", "ARIMA_only", "XGB_pure"]],
+        benchmark_df[["Country", "Date", "ARIMA_only", "XGB_pure", "RW", "SN"]],
         on=["Country", "Date"],
         how="inner",
     )

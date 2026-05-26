@@ -51,8 +51,16 @@ def build_feature_matrix(train_df, residuals_df, cfg):
         [cfg.data.date_column, cfg.data.country_column]
     )
 
-    _dates = pd.to_datetime(merged[cfg.data.date_column])
+    macro_cols = [
+        c
+        for c in merged.columns
+        if c not in drop_always and c not in (cfg.data.country_column, "arima_residual")
+    ]
     merged = merged.copy()
+    merged[macro_cols] = merged.groupby(cfg.data.country_column)[macro_cols].shift(1)
+    merged = merged.dropna(subset=macro_cols).reset_index(drop=True)
+
+    _dates = pd.to_datetime(merged[cfg.data.date_column])
     merged["Month_sin"] = np.sin(2 * np.pi * _dates.dt.month / 12)
     merged["Month_cos"] = np.cos(2 * np.pi * _dates.dt.month / 12)
     merged["Year_trend"] = (_dates.dt.year - 2004) / 20.0
