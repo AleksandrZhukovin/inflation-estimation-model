@@ -66,7 +66,6 @@ Key fields in `config.yaml`:
 | `data.dataset_path` | `data/diploma_dataset_1.csv` | Input dataset |
 | `data.train_end` | `2019-12-31` | End of pre-test training window |
 | `data.test_start` / `test_end` | `2020-01-01` / `2021-12-31` | Test window |
-| `data.ua_post_test_start` | `2022-01-01` | Start of post-test UA training data |
 | `xgboost.n_estimators` | `2000` | Tree budget for final training |
 | `xgboost.cv_n_splits` | `5` | Folds for TimeSeriesSplit CV |
 | `project.random_seed` | `42` | Global RNG seed |
