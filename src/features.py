@@ -82,6 +82,56 @@ def build_feature_matrix(train_df, residuals_df, cfg):
     return X, y, feature_names
 
 
+def build_test_features(test_df, cfg, feature_names, last_train_df=None):
+    drop_always = {
+        cfg.data.date_column,
+        cfg.data.target_column,
+        *cfg.data.flag_columns,
+    }
+    macro_cols = [
+        c
+        for c in test_df.columns
+        if c not in drop_always and c != cfg.data.country_column
+    ]
+
+    working = test_df.copy()
+
+    if last_train_df is not None:
+        parts = []
+        for country in working[cfg.data.country_column].unique():
+            last_row = (
+                last_train_df[last_train_df[cfg.data.country_column] == country]
+                .sort_values(cfg.data.date_column)
+                .iloc[[-1]]
+            )
+            country_test = working[
+                working[cfg.data.country_column] == country
+            ].sort_values(cfg.data.date_column)
+            combined = pd.concat([last_row, country_test], ignore_index=True)
+            for col in macro_cols:
+                combined[col] = combined[col].shift(1)
+            parts.append(combined.iloc[1:])
+        working = pd.concat(parts, ignore_index=True)
+
+    _dates = pd.to_datetime(working[cfg.data.date_column])
+    working["Month_sin"] = np.sin(2 * np.pi * _dates.dt.month / 12)
+    working["Month_cos"] = np.cos(2 * np.pi * _dates.dt.month / 12)
+    working["Year_trend"] = (_dates.dt.year - 2004) / 20.0
+
+    country_dummies = pd.get_dummies(
+        working[cfg.data.country_column], prefix="Country", dtype=float
+    )
+    working = working.drop(columns=[cfg.data.country_column])
+    working = pd.concat([working, country_dummies], axis=1)
+    working = working.drop(columns=[c for c in drop_always if c in working.columns])
+
+    for col in feature_names:
+        if col not in working.columns:
+            working[col] = 0.0
+
+    return working[feature_names].reset_index(drop=True)
+
+
 def build_feature_summary(X, feature_names):
     rows = []
     for col in feature_names:
