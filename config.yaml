@@ -19,7 +19,10 @@ data:
     - "UA"
   ua_train_start: "2007-01-01"
   lt_lv_train_start: "2007-01-01"
-
+  patches:
+    - column: "Global_GPR_Index"
+      target_entity: "UA"
+      source_entity: "LT"
 arima:
   d: 1
   max_p: 5
