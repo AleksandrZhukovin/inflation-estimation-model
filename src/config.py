@@ -1,3 +1,9 @@
+"""
+Configuration loader
+
+Read config.yaml file with experiment params.
+"""
+
 from pathlib import Path
 from types import SimpleNamespace
 

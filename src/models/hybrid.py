@@ -1,9 +1,9 @@
 """
 Hybrid ARIMA+XGBoost model.
 
-Composes a pre-fitted ARIMA model (base forecast) with
+Compose pre-fitted ARIMA model (base forecast) with
 a pre-fitted XGBoost model (residual correction).
-Forecast = ARIMA prediction + XGBoost correction.
+Final forecast is calculated as ARIMA prediction + XGBoost correction.
 """
 
 import numpy as np
@@ -21,6 +21,14 @@ class HybridModel(BaseModel):
     ):
         self.arima_model = arima_model
         self.xgboost_model = xgboost_model
+
+    @property
+    def name(self) -> str:
+        return "hybrid"
+
+    @property
+    def label(self) -> str:
+        return "Hybrid ARIMA-XGBoost"
 
     def fit(self, *args, **kwargs):
         raise NotImplementedError(
